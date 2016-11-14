@@ -5,15 +5,41 @@ This CHANGELOG follows the format listed at [Keep A Changelog](http://keepachang
 
 ## [Unreleased]
 
+### Fixed
+- metrics-netstat-tcp.rb: Option to disable IPv6 check (#44 via @MattMencel)
+
+### Changed
+- check-banner.rb: Option to enable SSL socket for secure connection
+
+## [1.1.0] - 2016-08-07
+### Added
+- metrics-netstat-tcp.rb: Add IPv6 state counts (@mlf4aiur)
+
+### Fixed
+- check-ping.rb: Fix false positives (#34 via @kai101)
+
+## [1.0.0] - 2016-06-14
+### Fixed
+- check-whois-domain-expiration-multi.rb: Handle whois errors better by retrying failed lookups
+- Use Timeout.timeout not deprecated Object#timeout
+
+### Added
+- check-whois-domain-expiration-multi.rb: Add timeout option
+- Support for Ruby 2.3.0
+
+### Removed
+- Support for Ruby 1.9.3
+
+### Changed
+- Update to Rubocop 0.40 and cleanup
+
 ## [0.2.4] - 2016-04-02
 ### Fixed
 - metrics-ping.rb: Fix error when a host can't be pinged. Convert to a proper metrics check.
-- check-whois-domain-expiration-multi.rb: Handle whois errors better by retrying failed lookups
 
 ### Added
 - basic check for netfilter conntrack
 - Option for newline character in write string for check-banner
-- check-whois-domain-expiration-multi.rb: Add timeout option
 
 ## [0.1.4] - 2016-01-22
 ### Added
@@ -131,7 +157,9 @@ This CHANGELOG follows the format listed at [Keep A Changelog](http://keepachang
 
 * initial release, same as community repo
 
-[Unreleased]: https://github.com/sensu-plugins/sensu-plugins-network-checks/compare/0.2.4...HEAD
+[Unreleased]: https://github.com/sensu-plugins/sensu-plugins-network-checks/compare/1.1.0...HEAD
+[1.1.0]: https://github.com/sensu-plugins/sensu-plugins-network-checks/compare/1.0.0...1.1.0
+[1.0.0]: https://github.com/sensu-plugins/sensu-plugins-network-checks/compare/0.2.4...1.0.0
 [0.2.4]: https://github.com/sensu-plugins/sensu-plugins-network-checks/compare/0.1.4...0.2.4
 [0.1.4]: https://github.com/sensu-plugins/sensu-plugins-network-checks/compare/0.1.3...0.1.4
 [0.1.3]: https://github.com/sensu-plugins/sensu-plugins-network-checks/compare/0.1.2...0.1.3
