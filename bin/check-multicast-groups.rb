@@ -1,6 +1,8 @@
 #! /usr/bin/env ruby
+# frozen_string_literal: false
+
 #
-#   check-multicasr-groups
+#   check-multicast-groups
 #
 # DESCRIPTION:
 #   This plugin checks if specific multicast groups are configured
@@ -49,10 +51,7 @@ class CheckMulticastGroups < Sensu::Plugin::Check::CLI
          description: 'Path to a config file'
 
   def run
-    targets = settings['check-multicast-groups'] ||= []
-    extras = load_config(config[:config])['check-multicast-groups'] || []
-    targets.deep_merge(extras)
-
+    targets = load_config(config[:config])['check-multicast-groups'] || []
     critical 'No target muticast groups are specified.' if targets.empty?
 
     iface_pat = /[a-zA-Z0-9\.]+/
@@ -64,12 +63,12 @@ class CheckMulticastGroups < Sensu::Plugin::Check::CLI
     expected = Set.new(targets)
 
     diff = expected.difference(actual)
-    if diff.size > 0 # rubocop:disable Style/ZeroLengthPredicate
+    unless diff.empty?
       diff_output = diff.map { |iface, addr| "#{iface}\t#{addr}" }.join("\n")
       critical "#{diff.size} missing multicast group(s):\n#{diff_output}"
     end
     ok
-  rescue => ex
+  rescue StandardError => ex
     critical "Failed to check multicast groups: #{ex}"
   end
 end

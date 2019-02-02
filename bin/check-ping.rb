@@ -1,4 +1,6 @@
 #! /usr/bin/env ruby
+# frozen_string_literal: true
+
 #
 #  check-ping
 #
@@ -83,7 +85,7 @@ class CheckPING < Sensu::Plugin::Check::CLI
     pt = Net::Ping::External.new(config[:host], nil, config[:timeout])
 
     config[:count].times do |i|
-      sleep(config[:interval]) unless i == 0
+      sleep(config[:interval]) unless i.zero?
       result[i] = config[:ipv6] ? pt.ping6 : pt.ping
     end
 
@@ -98,6 +100,10 @@ class CheckPING < Sensu::Plugin::Check::CLI
       failure_message = "ICMP ping unsuccessful for host: #{config[:host]} (successful: #{successful_count}/#{total_count})"
 
       if config[:report]
+        mtr = `mtr --help`
+        if mtr == 1
+          unknown 'mtr is not available in $PATH'
+        end
         report = `mtr --curses --report-cycles=1 --report --no-dns #{config[:host]}`
         failure_message = failure_message + "\n" + report
       end

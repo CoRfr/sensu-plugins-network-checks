@@ -1,5 +1,5 @@
 #! /usr/bin/env ruby
-#  encoding: UTF-8
+# frozen_string_literal: true
 #
 #   metrics-interface-ssh
 #
@@ -48,6 +48,13 @@ class InterfaceGraphite < Sensu::Plugin::Metric::CLI::Graphite
          proc: proc { |a| a.split(',') },
          default: ["lo"]
 
+  option :includeinterface,
+         description: 'List of interfaces to include',
+         short: '-i INTERFACE[,INTERFACE]',
+         long: '--include-interface',
+         proc: proc { |a| a.split(',') }
+
+
   option :host,
          description: 'Remove host',
          short: '-h HOST',
@@ -69,7 +76,7 @@ class InterfaceGraphite < Sensu::Plugin::Metric::CLI::Graphite
   def run
     # Metrics borrowed from hoardd: https://github.com/coredump/hoardd
 
-    metrics = %w(rxBytes
+    metrics = %w[rxBytes
                  rxPackets
                  rxErrors
                  rxDrops
@@ -84,7 +91,7 @@ class InterfaceGraphite < Sensu::Plugin::Metric::CLI::Graphite
                  txFifo
                  txColls
                  txCarrier
-                 txCompressed)
+                 txCompressed]
 
     output = nil
 
@@ -101,6 +108,7 @@ class InterfaceGraphite < Sensu::Plugin::Metric::CLI::Graphite
     output.each_line do |line|
       interface, stats_string = line.scan(/^\s*([^:]+):\s*(.*)$/).first
       next if config[:excludeinterface] && config[:excludeinterface].find { |x| line.match(x) }
+      next if config[:includeinterface] && !(config[:includeinterface].find { |x| line.match(x) })
       next unless interface
       if interface.is_a?(String)
         interface = interface.tr('.', '_')

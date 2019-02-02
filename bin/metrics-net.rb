@@ -1,4 +1,6 @@
 #! /usr/bin/env ruby
+# frozen_string_literal: true
+
 #
 #   metrics-net
 #
@@ -71,6 +73,11 @@ class LinuxPacketMetrics < Sensu::Plugin::Metric::CLI::Graphite
          long: '--include-device',
          proc: proc { |a| a.split(',') }
 
+  option :only_up,
+         description: 'Include only devices whose interface status is up',
+         short: '-u',
+         long: '--only-up'
+
   def run
     timestamp = Time.now.to_i
 
@@ -81,6 +88,7 @@ class LinuxPacketMetrics < Sensu::Plugin::Metric::CLI::Graphite
 
       next if config[:ignore_device] && config[:ignore_device].find { |x| iface.match(x) }
       next if config[:include_device] && !config[:include_device].find { |x| iface.match(x) }
+      next if config[:only_up] && File.open(iface_path + '/operstate').read.strip != 'up'
 
       tx_pkts = File.open(iface_path + '/statistics/tx_packets').read.strip
       rx_pkts = File.open(iface_path + '/statistics/rx_packets').read.strip
@@ -91,7 +99,7 @@ class LinuxPacketMetrics < Sensu::Plugin::Metric::CLI::Graphite
 
       begin
         if_speed = File.open(iface_path + '/speed').read.strip
-      rescue
+      rescue StandardError
         if_speed = 0
       end
 

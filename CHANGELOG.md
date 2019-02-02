@@ -1,12 +1,87 @@
-#Change Log
+# Change Log
 This project adheres to [Semantic Versioning](http://semver.org/).
 
-This CHANGELOG follows the format listed at [Keep A Changelog](http://keepachangelog.com/)
+This CHANGELOG follows the format listed  [here](https://github.com/sensu-plugins/community/blob/master/HOW_WE_CHANGELOG.md)
 
 ## [Unreleased]
 
+## [3.2.1] - 2018-08-31
+### Fixed
+- check-whois-domain-expiration.rb: corrected warn and critical flag value parsing per: https://github.com/sensu-plugins/sensu-plugins-network-checks/issues/81 (@aww-yiss)
+
+## [3.2.0] - 2018-08-06
+### Added
+ - metrics-net.rb: allow including only interfaces whos status is `up` (@johannagnarsson)
+
+## [3.1.2] - 2018-06-10
+### Fixed
+- metrics-netif.rb: allow you to actually pass in a value for `--average-key` (@scones)
+
+## [3.1.1] - 2018-03-27
+### Security
+- updated yard dependency to `~> 0.9.11` per: https://nvd.nist.gov/vuln/detail/CVE-2017-17042 (@majormoses)
+
+## [3.1.0] - 2018-03-17
+### Changed
+- check-netfilter-conntrack.rb: ditch the associated shellscript and turned into pure Ruby.
+
+## [3.0.0] - 2018-03-17
+### Security
+- updated rubocop dependency to `~> 0.51.0` per: https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-8418. (@majormoses)
+
+### Breaking Changes
+- removed ruby `< 2.1` support (@majormoses)
+
+### Changed
+- appeased the cops and updated cop config (@majormoses)
+
+## [2.3.1] - 2018-02-28
+### Changed
+- update whois-parser gem dependency to version 1.0.1 (@amdprophet)
+
+## [2.3.0] - 2018-02-09
+### Changed
+- check-whois-domain-expiration.rb, check-whois-domain-expiration-multi.rb and check-jsonwhois-domain-expiration.rb: better resilience against errors, better reporting of erroneous responses (@DrMurx)
+
+## [2.2.0] - 2018-02-02
+### Added
+- check-ports.rb: support for multiple hosts (@DDSloan96)
+
+### Changed
+- updated changelog guidelines location (@majormoses)
+
+## [2.1.1] - 2018-01-06
+### Fixed
+- check-whois-domain-expiration-multi.rb: report a `critical` error on a domain that it gets back an empty expires_on. (@edgan)
+
+## [2.1.0] - 2017-11-03
+### Added
+- metrics-interface.rb: Option to listen to specfic interface. (@parin921996)
+
+## [2.0.1] - 2017-08-01
+### Added
+- ruby 2.4 testing to travis (@majormoses)
+
+### Fixed
+- misc changelog na PR template fixes (@majormoses)
+- check-whois-domain-expiration.rb: "Check failed to run: invalid date" caused by a change to the whois gem which removed the parser from the main repository (issue #59) (@akatch)
+
+## [2.0.0] 2017-06-07
+### Breaking Changes
+- check-multicast-groups.rb: Stop loading system wide settings from `settings['check-multicast-groups']` and use only the config specified as `-c` (#57 via @maoe)
+
+## [1.2.0] - 2017-06-07
+### Added
+- Added check-ports-bind.rb (@hanynowsky)
+- Added interval option to metrics-netif.rb (@Evesy)
+- metrics-netif.rb: expose average-key option that is used to `grep` to more easily handle locale issues (@majormoses)
+- metrics-netif.rb: unknown if it can not find `sar` in its `$PATH` (@majormoses)
+- check-ping.rb: unknown if using `--reports` and do not have `mtr` installed and in "$PATH" (@majormoses)
+
 ### Fixed
 - metrics-netstat-tcp.rb: Option to disable IPv6 check (#44 via @MattMencel)
+- check-multicast-groups.rb: Fix undefined method deep_merge for []:Array (@maoe)
+- check-whois-domain-expiration-multi.rb does not fail as timeout is cast to integer (@majormoses)
 
 ### Changed
 - check-banner.rb: Option to enable SSL socket for secure connection
@@ -35,7 +110,7 @@ This CHANGELOG follows the format listed at [Keep A Changelog](http://keepachang
 
 ## [0.2.4] - 2016-04-02
 ### Fixed
-- metrics-ping.rb: Fix error when a host can't be pinged. Convert to a proper metrics check.
+- metrics-ping.rb: Fix error when a host cannot be pinged. Convert to a proper metrics check.
 
 ### Added
 - basic check for netfilter conntrack
@@ -157,7 +232,21 @@ This CHANGELOG follows the format listed at [Keep A Changelog](http://keepachang
 
 * initial release, same as community repo
 
-[Unreleased]: https://github.com/sensu-plugins/sensu-plugins-network-checks/compare/1.1.0...HEAD
+[Unreleased]: https://github.com/sensu-plugins/sensu-plugins-network-checks/compare/3.2.1...HEAD
+[3.2.1]: https://github.com/sensu-plugins/sensu-plugins-network-checks/compare/3.2.0...3.2.1
+[3.2.0]: https://github.com/sensu-plugins/sensu-plugins-network-checks/compare/3.1.2...3.2.0
+[3.1.2]: https://github.com/sensu-plugins/sensu-plugins-network-checks/compare/3.1.1...3.1.2
+[3.1.1]: https://github.com/sensu-plugins/sensu-plugins-network-checks/compare/3.1.0...3.1.1
+[3.1.0]: https://github.com/sensu-plugins/sensu-plugins-network-checks/compare/3.0.0...3.1.0
+[3.0.0]: https://github.com/sensu-plugins/sensu-plugins-network-checks/compare/2.3.0...3.0.0
+[2.3.1]: https://github.com/sensu-plugins/sensu-plugins-network-checks/compare/2.3.0...2.3.1
+[2.3.0]: https://github.com/sensu-plugins/sensu-plugins-network-checks/compare/2.2.0...2.3.0
+[2.2.0]: https://github.com/sensu-plugins/sensu-plugins-network-checks/compare/2.1.1...2.2.0
+[2.1.1]: https://github.com/sensu-plugins/sensu-plugins-network-checks/compare/2.1.0...2.1.1
+[2.1.0]: https://github.com/sensu-plugins/sensu-plugins-network-checks/compare/2.0.1...2.1.0
+[2.0.1]: https://github.com/sensu-plugins/sensu-plugins-network-checks/compare/2.0.0...2.0.1
+[2.0.0]: https://github.com/sensu-plugins/sensu-plugins-network-checks/compare/1.2.0...2.0.0
+[1.2.0]: https://github.com/sensu-plugins/sensu-plugins-network-checks/compare/1.1.0...1.2.0
 [1.1.0]: https://github.com/sensu-plugins/sensu-plugins-network-checks/compare/1.0.0...1.1.0
 [1.0.0]: https://github.com/sensu-plugins/sensu-plugins-network-checks/compare/0.2.4...1.0.0
 [0.2.4]: https://github.com/sensu-plugins/sensu-plugins-network-checks/compare/0.1.4...0.2.4

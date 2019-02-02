@@ -1,5 +1,6 @@
 #!/usr/bin/env ruby
-# encoding: utf-8
+# frozen_string_literal: false
+
 #
 #   check-whois-domain-expiration-multi
 #
@@ -29,6 +30,7 @@
 
 require 'sensu-plugin/check/cli'
 require 'whois'
+require 'whois-parser'
 
 #
 # Check Whois domain expiration
@@ -44,17 +46,35 @@ class WhoisDomainExpirationCheck < Sensu::Plugin::Check::CLI
          short: '-w DAYS',
          long: '--warn DAYS',
          default: 30,
+         proc: proc(&:to_i),
          description: 'Warn if fewer than DAYS away'
 
   option :critical,
          short: '-c DAYS',
          long: '--critical DAYS',
+         proc: proc(&:to_i),
          default: 7,
          description: 'Critical if fewer than DAYS away'
+
+  option :'ignore-errors',
+         short: '-i',
+         long: '--ignore-errors',
+         boolean: true,
+         default: false,
+         description: 'Ignore connection or parsing errors'
+
+  option :'report-errors',
+         short: '-r LEVEL',
+         long: '--report-errors LEVEL',
+         proc: proc(&:to_sym),
+         in: %i[unknown warning critical],
+         default: :unknown,
+         description: 'Level for reporting connection or parsing errors'
 
   option :timeout,
          short: '-t SECONDS',
          long: '--timeout SECONDS',
+         proc: proc(&:to_i),
          default: 10,
          description: 'Timeout for whois lookup'
 
@@ -73,42 +93,60 @@ class WhoisDomainExpirationCheck < Sensu::Plugin::Check::CLI
     domains = config[:domain].split(',')
     warning_days = config[:warning].to_i
     critical_days = config[:critical].to_i
-    results = {}
-    results['critical'] = {}
-    results['warning'] = {}
-    results['ok'] = {}
     max_retries = 4
 
+    results = {
+      critical: {},
+      warning: {},
+      ok: {},
+      unknown: {}
+    }
+    whois = Whois::Client.new(timeout: config[:timeout])
+
     domains.each do |domain|
-      whois = Whois::Client.new(timeout: config[:timeout])
       begin
         tries ||= 0
-        whois_result = whois.lookup(domain)
+        whois_result = whois.lookup(domain).parser
       rescue Timeout::Error, Errno::ECONNRESET, Whois::ConnectionError
         tries += 1
-        tries < max_retries ? retry : next
+        if tries < max_retries
+          retry
+        else
+          results[:unknown][domain] = 'Connection error' unless config[:'ignore-errors']
+          next
+        end
       end
 
-      unless whois_result.expires_on.nil?
-        domain_result = (DateTime.parse(whois_result.expires_on.to_s) - DateTime.now).to_i
+      begin
+        expires_on = DateTime.parse(whois_result.expires_on.to_s)
+        domain_result = (expires_on - DateTime.now).to_i
         if domain_result <= critical_days
-          results['critical'][domain] = domain_result
+          results[:critical][domain] = domain_result
         elsif domain_result <= warning_days
-          results['warning'][domain] = domain_result
+          results[:warning][domain] = domain_result
         else
-          results['ok'] = domain_result
+          results[:ok][domain] = domain_result
         end
+      rescue StandardError
+        results[:unknown][domain] = 'Parsing error' unless config[:'ignore-errors']
       end
     end
     results
   end
 
   def run
-    status = expiration_results
-    if !status['critical'].empty?
-      critical status['critical'].map { |u, v| "#{u} days left:#{v}" }.join(',')
-    elsif !status['warning'].empty?
-      warning status['warning'].map { |u, v| "#{u} days left:#{v}" }.join(',')
+    results = expiration_results
+
+    warn_results = results[:critical].merge(results[:warning]).map { |u, v| "#{u} (#{v} days left)" }
+    unknown_results = results[:unknown].map { |u, v| "#{u} (#{v})" }
+    message warn_results.concat(unknown_results).join(', ')
+
+    if !results[:critical].empty? || (!results[:unknown].empty? && config[:'report-errors'] == :critical)
+      critical
+    elsif !results[:warning].empty? || (!results[:unknown].empty? && config[:'report-errors'] == :warning)
+      warning
+    elsif !results[:unknown].empty?
+      unknown
     else
       ok 'No domains expire in the near term'
     end

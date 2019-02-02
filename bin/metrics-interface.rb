@@ -1,5 +1,6 @@
 #! /usr/bin/env ruby
-#  encoding: UTF-8
+# frozen_string_literal: true
+
 #
 #   interface-metrics
 #
@@ -43,10 +44,16 @@ class InterfaceGraphite < Sensu::Plugin::Metric::CLI::Graphite
          long: '--exclude-interface',
          proc: proc { |a| a.split(',') }
 
+  option :includeinterface,
+         description: 'List of interfaces to include',
+         short: '-i INTERFACE[,INTERFACE]',
+         long: '--include-interface',
+         proc: proc { |a| a.split(',') }
+
   def run
     # Metrics borrowed from hoardd: https://github.com/coredump/hoardd
 
-    metrics = %w(rxBytes
+    metrics = %w[rxBytes
                  rxPackets
                  rxErrors
                  rxDrops
@@ -61,11 +68,12 @@ class InterfaceGraphite < Sensu::Plugin::Metric::CLI::Graphite
                  txFifo
                  txColls
                  txCarrier
-                 txCompressed)
+                 txCompressed]
 
     File.open('/proc/net/dev', 'r').each_line do |line|
       interface, stats_string = line.scan(/^\s*([^:]+):\s*(.*)$/).first
       next if config[:excludeinterface] && config[:excludeinterface].find { |x| line.match(x) }
+      next if config[:includeinterface] && !(config[:includeinterface].find { |x| line.match(x) })
       next unless interface
       if interface.is_a?(String)
         interface = interface.tr('.', '_')
